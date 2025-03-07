@@ -1,0 +1,25 @@
+.box {
+  --_background: var(--background, #333);
+  --_color: var(--color, #fff);
+  height: 25vh;
+  display: grid;
+  place-items: center;
+  text-transform: uppercase;
+  background: var(--_background);
+  color: var(--_color);
+}
+
+.content {
+  --background: #ff0000;
+  --color: #ffffff;
+}
+
+.breakout {
+  --background: #00ff00;
+  --color: #000000;
+}
+
+.fullwidth {
+  --background: #0000ff;
+  --color: #ffffff;
+}

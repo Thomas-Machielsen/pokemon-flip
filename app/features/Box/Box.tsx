@@ -1,3 +1,5 @@
+import "./Box.css";
+
 interface BoxProps {
   /**
    * The className should be one of:
@@ -10,7 +12,7 @@ interface BoxProps {
 
 export default function Box({ className }: BoxProps) {
   return (
-    <div className={className}>
+    <div className={`box ${className}`}>
       <h2>{className}</h2>
     </div>
   );
