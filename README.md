@@ -1,5 +1,14 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Development Approach
+
+This project is built entirely using [Cursor](https://cursor.sh), an AI-powered code editor. Every feature, component, and style has been created through prompting and pair programming with Cursor's AI assistant. This approach demonstrates:
+
+- Rapid prototyping and development
+- Consistent code style and patterns
+- Modern best practices in React and Next.js
+- Systematic approach to styling with fluid typography and grid systems
+
 ## Getting Started
 
 First, run the development server:
