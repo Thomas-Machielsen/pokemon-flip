@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bitter, Source_Sans_3 } from "next/font/google";
 import "./styles/main.css";
+import "./styles/utils.css";
 
 const bitter = Bitter({
   subsets: ["latin"],
