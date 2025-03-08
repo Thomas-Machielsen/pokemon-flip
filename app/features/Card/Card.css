@@ -1,5 +1,16 @@
 .card {
+  cursor: pointer;
+  border: none;
+  background: transparent;
   padding: var(--space-s);
   border-radius: var(--space-s);
   border: 1px solid #000;
+}
+
+.card__face {
+  transition: transform 0.4s ease-in-out;
+}
+
+.card__face.flipped {
+  transform: rotateY(180deg) scaleX(-1);
 }
