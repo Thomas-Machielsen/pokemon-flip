@@ -7,8 +7,8 @@ import "./Card.css";
 interface CardProps {
   id: number;
   name: string;
-  type: string;
-  artwork: string;
+  type?: string;
+  artwork?: string;
 }
 
 export default function Card({ id, name, type, artwork }: CardProps) {
@@ -19,20 +19,25 @@ export default function Card({ id, name, type, artwork }: CardProps) {
   };
 
   return (
-    <button className={`card ${type}`} onClick={handleFlip}>
+    <button className={`card ${type || "unknown"}`} onClick={handleFlip}>
       <div className={`card__face ${flipped ? "flipped" : ""}`}>
         {!flipped ? (
           <>
-            <Image
-              src={artwork}
-              alt={`${name} artwork`}
-              width={250}
-              height={250}
-              priority
-            />
+            {artwork ? (
+              <Image
+                src={artwork}
+                alt={`${name} artwork`}
+                width={250}
+                height={250}
+                style={{ width: "auto", height: "auto" }}
+                priority
+              />
+            ) : (
+              <div className="placeholder">?</div>
+            )}
             <h2>{name}</h2>
             <p>#{id}</p>
-            <p>{type}</p>
+            <p>{type || "Unknown"}</p>
           </>
         ) : (
           <>

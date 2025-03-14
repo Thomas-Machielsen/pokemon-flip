@@ -2,30 +2,95 @@ import { Pokemon, PokemonCardData } from "../types/pokemon";
 
 const POKE_API_BASE_URL = "https://pokeapi.co/api/v2";
 
-export async function fetchPokemon(id: number): Promise<Pokemon> {
-  const response = await fetch(`${POKE_API_BASE_URL}/pokemon/${id}`);
+interface PokemonListItem {
+  name: string;
+  url: string;
+}
+
+interface PokemonWithId {
+  name: string;
+  id: number;
+  detailsPromise: Promise<Pokemon>;
+}
+
+interface PokemonList {
+  results: PokemonListItem[];
+}
+
+async function fetchPokemonDetails(url: string): Promise<Pokemon> {
+  const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch Pokemon with ID ${id}`);
+    throw new Error(`Failed to fetch Pokemon details`);
   }
   return response.json();
 }
 
-export async function fetchGen1Pokemon(): Promise<PokemonCardData[]> {
-  // Gen 1 Pokemon IDs are 1-151
-  const gen1Ids = Array.from({ length: 151 }, (_, i) => i + 1);
+async function fetchPokemonList(): Promise<PokemonList> {
+  const response = await fetch(
+    `${POKE_API_BASE_URL}/pokemon?limit=151&offset=0`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch Pokemon list");
+  }
+  return response.json();
+}
 
-  try {
-    const pokemonPromises = gen1Ids.map((id) => fetchPokemon(id));
-    const pokemonData = await Promise.all(pokemonPromises);
-
-    return pokemonData.map((pokemon) => ({
-      id: pokemon.id,
+function createPokemonWithIds(pokemonList: PokemonList): PokemonWithId[] {
+  return pokemonList.results.map(
+    (pokemon: PokemonListItem, index: number): PokemonWithId => ({
       name: pokemon.name,
-      type: pokemon.types[0].type.name,
-      artwork: pokemon.sprites.other["official-artwork"].front_default,
-    }));
+      id: index + 1,
+      detailsPromise: fetchPokemonDetails(pokemon.url),
+    })
+  );
+}
+
+function mapToPokemonCardData(
+  pokemon: PokemonWithId,
+  details: Pokemon
+): PokemonCardData {
+  return {
+    id: pokemon.id,
+    name: pokemon.name,
+    type: details.types[0].type.name,
+    artwork: details.sprites.other["official-artwork"].front_default,
+  };
+}
+
+function createFallbackPokemonData(pokemon: PokemonWithId): PokemonCardData {
+  return {
+    id: pokemon.id,
+    name: pokemon.name,
+    type: undefined,
+    artwork: undefined,
+  };
+}
+
+export async function fetchGen1Pokemon(): Promise<PokemonCardData[]> {
+  try {
+    // Step 1: Fetch basic Pokemon list
+    const pokemonList = await fetchPokemonList();
+
+    // Step 2: Create Pokemon with IDs and detail promises
+    const pokemonWithIds = createPokemonWithIds(pokemonList);
+
+    // Step 3: Fetch all details in parallel
+    const results = await Promise.allSettled(
+      pokemonWithIds.map((p) => p.detailsPromise)
+    );
+
+    // Step 4: Map results to final format
+    return pokemonWithIds.map((pokemon, index) => {
+      const detailsResult = results[index];
+
+      if (detailsResult.status === "fulfilled") {
+        return mapToPokemonCardData(pokemon, detailsResult.value);
+      }
+
+      return createFallbackPokemonData(pokemon);
+    });
   } catch (error) {
     console.error("Error fetching Gen 1 Pokemon:", error);
-    throw error;
+    throw new Error("Failed to fetch Pokemon data. Please try again later.");
   }
 }

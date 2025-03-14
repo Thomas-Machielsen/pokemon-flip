@@ -44,5 +44,13 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "@babel/runtime@<7.26.10": ">=7.26.10",
+      "@babel/helpers@<7.26.10": ">=7.26.10",
+      "next@>=15.0.0 <15.2.3": ">=15.2.3",
+      "vite@>=6.2.0 <6.2.3": ">=6.2.3"
+    }
   }
 }

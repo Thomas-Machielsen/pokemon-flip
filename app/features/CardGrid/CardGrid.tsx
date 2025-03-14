@@ -5,8 +5,8 @@ interface CardGridProps {
   cards: Array<{
     id: number;
     name: string;
-    type: string;
-    artwork: string;
+    type?: string;
+    artwork?: string;
   }>;
 }
 
