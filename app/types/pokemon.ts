@@ -39,6 +39,6 @@ export interface Pokemon {
 export interface PokemonCardData {
   id: number;
   name: string;
-  type: string;
-  artwork: string;
+  type: string | undefined;
+  artwork: string | undefined;
 }
