@@ -25,33 +25,42 @@ export default function Card({ id, name, type, artwork }: CardProps) {
       <div className={`card__face ${flipped ? "flipped" : ""}`}>
         {!flipped ? (
           <>
-            {artwork ? (
-              <Image
-                src={artwork}
-                alt={`${name} artwork`}
-                width={250}
-                height={250}
-                style={{ width: "auto", height: "auto" }}
-                priority
-              />
-            ) : (
-              <div className="placeholder">?</div>
-            )}
-            <h2>{name}</h2>
-            <p>#{id}</p>
-            <p>{type || "Unknown"}</p>
+            <div className="card__header">
+              <h2 className="card__title">{name}</h2>
+              <span className="card__hp">40 HP</span>
+            </div>
+            <div className="card__image-container">
+              {artwork ? (
+                <Image
+                  src={artwork}
+                  alt={`${name} artwork`}
+                  fill
+                  className="card__image"
+                  priority
+                />
+              ) : (
+                <div className="placeholder">?</div>
+              )}
+            </div>
+            <p className="card__caption">
+              #{id} {type || "Unknown"} Pokémon
+            </p>
+            <div className="card__abilities">
+              <p>Abilities coming soon...</p>
+            </div>
           </>
         ) : (
           <>
-            <Image
-              src={pokemusuImage}
-              alt={`${name} pokemusu`}
-              width={250}
-              height={250}
-              style={{ width: "auto", height: "auto" }}
-              priority
-            />
-            <h2>Pokemusu {name}!</h2>
+            <div className="card__image-container">
+              <Image
+                src={pokemusuImage}
+                alt={`${name} pokemusu`}
+                fill
+                className="card__image"
+                priority
+              />
+            </div>
+            <p className="card__caption">Pokemusu {name}</p>
           </>
         )}
       </div>

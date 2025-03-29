@@ -1,10 +1,78 @@
 .card {
+  --card-padding: 0.75rem;
+  --card-border-radius: 1rem;
+  --card-border-width: 0.5rem;
+  --card-width: 300px;
+  --card-aspect-ratio: 1.4;
+  --card-background: #f8f8f8;
+  --card-border-color: #ffd700;
+
+  position: relative;
+  width: var(--card-width);
+  border: var(--card-border-width) solid var(--card-border-color);
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  background-color: var(--card-background);
   cursor: pointer;
-  border: none;
-  background: transparent;
-  padding: var(--space-s);
-  border-radius: var(--space-s);
-  border: 1px solid #000;
+  transition: transform 0.3s ease;
+}
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card__title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.card__hp {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+.card__image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.4;
+  border-radius: 0.25rem;
+  border: 2px solid #ccc;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card__caption {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.card__abilities {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.25rem;
+}
+
+/* Type-based background variations will go here later */
+.card.grass {
+  --card-background: rgb(165, 200, 124);
+}
+
+.card.unknown {
+  --card-background: #eee;
 }
 
 .card__face {
