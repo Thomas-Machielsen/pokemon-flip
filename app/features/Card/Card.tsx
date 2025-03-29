@@ -18,6 +18,8 @@ export default function Card({ id, name, type, artwork }: CardProps) {
     setFlipped(!flipped);
   };
 
+  const pokemusuImage = `/images/${name}.png`;
+
   return (
     <button className={`card ${type || "unknown"}`} onClick={handleFlip}>
       <div className={`card__face ${flipped ? "flipped" : ""}`}>
@@ -41,8 +43,15 @@ export default function Card({ id, name, type, artwork }: CardProps) {
           </>
         ) : (
           <>
-            <h1>Sike!</h1>
-            <h2>You thought you were getting a cat!</h2>
+            <Image
+              src={pokemusuImage}
+              alt={`${name} pokemusu`}
+              width={250}
+              height={250}
+              style={{ width: "auto", height: "auto" }}
+              priority
+            />
+            <h2>Pokemusu {name}!</h2>
           </>
         )}
       </div>
