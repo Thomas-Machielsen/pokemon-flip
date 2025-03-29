@@ -7,6 +7,26 @@
   --card-background: #f8f8f8;
   --card-border-color: #ffd700;
 
+  /* Pokemon type colors */
+  --type-normal: #a8a77a;
+  --type-fire: #ee8130;
+  --type-water: #6390f0;
+  --type-electric: #f7d02c;
+  --type-grass: #7ac74c;
+  --type-ice: #96d9d6;
+  --type-fighting: #c22e28;
+  --type-poison: #a33ea1;
+  --type-ground: #e2bf65;
+  --type-flying: #a98ff3;
+  --type-psychic: #f95587;
+  --type-bug: #a6b91a;
+  --type-rock: #b6a136;
+  --type-ghost: #735797;
+  --type-dragon: #6f35fc;
+  --type-dark: #705746;
+  --type-steel: #b7b7ce;
+  --type-fairy: #d685ad;
+
   position: relative;
   width: var(--card-width);
   border: var(--card-border-width) solid var(--card-border-color);
@@ -66,11 +86,61 @@
   border-radius: 0.25rem;
 }
 
-/* Type-based background variations will go here later */
-.card.grass {
-  --card-background: rgb(165, 200, 124);
+/* Type-based background variations */
+.card.normal {
+  --card-background: var(--type-normal);
 }
-
+.card.fire {
+  --card-background: var(--type-fire);
+}
+.card.water {
+  --card-background: var(--type-water);
+}
+.card.electric {
+  --card-background: var(--type-electric);
+}
+.card.grass {
+  --card-background: var(--type-grass);
+}
+.card.ice {
+  --card-background: var(--type-ice);
+}
+.card.fighting {
+  --card-background: var(--type-fighting);
+}
+.card.poison {
+  --card-background: var(--type-poison);
+}
+.card.ground {
+  --card-background: var(--type-ground);
+}
+.card.flying {
+  --card-background: var(--type-flying);
+}
+.card.psychic {
+  --card-background: var(--type-psychic);
+}
+.card.bug {
+  --card-background: var(--type-bug);
+}
+.card.rock {
+  --card-background: var(--type-rock);
+}
+.card.ghost {
+  --card-background: var(--type-ghost);
+}
+.card.dragon {
+  --card-background: var(--type-dragon);
+}
+.card.dark {
+  --card-background: var(--type-dark);
+}
+.card.steel {
+  --card-background: var(--type-steel);
+}
+.card.fairy {
+  --card-background: var(--type-fairy);
+}
 .card.unknown {
   --card-background: #eee;
 }
