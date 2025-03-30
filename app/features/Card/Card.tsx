@@ -34,7 +34,8 @@ export default function Card({ id, name, type, artwork }: CardProps) {
                 <Image
                   src={artwork}
                   alt={`${name} artwork`}
-                  fill
+                  width={475}
+                  height={475}
                   className="card__image"
                   priority
                 />
@@ -55,7 +56,8 @@ export default function Card({ id, name, type, artwork }: CardProps) {
               <Image
                 src={pokemusuImage}
                 alt={`${name} pokemusu`}
-                fill
+                width={475}
+                height={475}
                 className="card__image"
                 priority
               />

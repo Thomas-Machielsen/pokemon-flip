@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchGen1Pokemon } from "../services/pokemon";
+import { fetchGen1Pokemon } from "../services/(pokeapi)/pokemon";
 
 export async function getGen1Pokemon() {
   try {
