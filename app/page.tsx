@@ -1,8 +1,8 @@
-import { getGen1Pokemon } from "./actions/pokemon";
 import { CardGrid } from "./features/CardGrid";
+import { fetchAggregatedPokemon } from "./services/pokemonAggregator";
 
 export default async function Home() {
-  const pokemon = await getGen1Pokemon();
+  const pokemon = await fetchAggregatedPokemon();
 
   return (
     <main className="content-grid">

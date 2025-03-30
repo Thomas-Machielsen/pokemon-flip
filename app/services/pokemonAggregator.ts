@@ -1,9 +1,18 @@
 import fs from "fs";
 import path from "path";
 import { fetchGen1Pokemon } from "./(pokeapi)/pokemon";
-import { fetchBaseSetPokemon } from "./(pokemontcg)/pokemontcg";
+import {
+  CardMarket,
+  fetchBaseSetPokemon,
+  TCGAbility,
+  TCGAttack,
+  TCGImages,
+  TCGPlayer,
+  TCGSet,
+  TCGTypeEffect,
+} from "./(pokemontcg)/pokemontcg";
 
-interface AggregatedPokemon {
+export interface AggregatedPokemon {
   id: number;
   name: string;
   // PokeAPI data
@@ -13,98 +22,20 @@ interface AggregatedPokemon {
   tcgId?: string;
   tcgHp?: string;
   tcgTypes?: string[];
-  tcgImages?: {
-    small: string;
-    large: string;
-  };
-  tcgSet?: {
-    id: string;
-    name: string;
-    series: string;
-    printedTotal: number;
-    total: number;
-    legalities: {
-      unlimited: string;
-      standard: string;
-      expanded: string;
-    };
-    releaseDate: string;
-    updatedAt: string;
-  };
-  tcgAbilities?: Array<{
-    name: string;
-    text: string;
-    type: string;
-  }>;
-  tcgAttacks?: Array<{
-    name: string;
-    cost: string[];
-    convertedEnergyCost: number;
-    damage: string;
-    text: string;
-  }>;
-  tcgWeaknesses?: Array<{
-    type: string;
-    value: string;
-  }>;
-  tcgResistances?: Array<{
-    type: string;
-    value: string;
-  }>;
+  tcgImages?: TCGImages;
+  tcgSet?: TCGSet;
+  tcgAbilities?: TCGAbility[];
+  tcgAttacks?: TCGAttack[];
+  tcgWeaknesses?: TCGTypeEffect[];
+  tcgResistances?: TCGTypeEffect[];
   tcgRetreatCost?: string[];
   tcgRarity?: string;
   tcgFlavorText?: string;
   tcgArtist?: string;
   tcgNumber?: string;
   tcgPrices?: {
-    tcgplayer?: {
-      url: string;
-      updatedAt: string;
-      prices: {
-        normal?: {
-          low: number;
-          mid: number;
-          high: number;
-          market: number;
-          directLow: number;
-        };
-        holofoil?: {
-          low: number;
-          mid: number;
-          high: number;
-          market: number;
-          directLow: number;
-        };
-        reverseHolofoil?: {
-          low: number;
-          mid: number;
-          high: number;
-          market: number;
-          directLow: number;
-        };
-      };
-    };
-    cardmarket?: {
-      url: string;
-      updatedAt: string;
-      prices: {
-        averageSellPrice: number;
-        lowPrice: number;
-        trendPrice: number;
-        germanProLow: number | null;
-        suggestedPrice: number | null;
-        reverseHoloSell: number | null;
-        reverseHoloLow: number | null;
-        reverseHoloTrend: number | null;
-        lowPriceExPlus: number;
-        avg1: number;
-        avg7: number;
-        avg30: number;
-        reverseHoloAvg1: number | null;
-        reverseHoloAvg7: number | null;
-        reverseHoloAvg30: number | null;
-      };
-    };
+    tcgplayer?: TCGPlayer;
+    cardmarket?: CardMarket;
   };
 }
 
@@ -154,28 +85,62 @@ async function safelyFetchTcgApi() {
   }
 }
 
+// Helper function to get the effective ID for sorting
+function getEffectiveId(pokemon: AggregatedPokemon): number {
+  // If we have a PokeAPI ID, use that (matches Pokedex number)
+  if (pokemon.id) {
+    return pokemon.id;
+  }
+
+  // If we have a TCG number, try to parse it
+  if (pokemon.tcgNumber) {
+    const parsedId = parseInt(pokemon.tcgNumber, 10);
+    if (!isNaN(parsedId)) {
+      return parsedId;
+    }
+  }
+
+  // If we have a TCG ID that starts with 'base1-', try to parse the number after it
+  if (pokemon.tcgId && pokemon.tcgId.startsWith("base1-")) {
+    const parsedId = parseInt(pokemon.tcgId.replace("base1-", ""), 10);
+    if (!isNaN(parsedId)) {
+      return parsedId;
+    }
+  }
+
+  // Default to a large number to put unidentified Pokémon at the end
+  return 1000;
+}
+
 export async function fetchAggregatedPokemon(): Promise<AggregatedPokemon[]> {
   // Fetch data from all sources in parallel
-  const [pokeApiData, tcgData, imageData] = await Promise.all([
+  const [pokeApiData, tcgData, imageData] = await Promise.allSettled([
     safelyFetchPokeApi(),
     safelyFetchTcgApi(),
     getImageBasedPokemon(),
   ]);
 
-  // Create a map for TCG data if available
-  const tcgDataMap = tcgData
-    ? new Map(tcgData.map((card) => [normalizeName(card.name), card]))
-    : new Map();
+  const tcgDataMap =
+    tcgData.status === "fulfilled"
+      ? new Map(tcgData.value?.map((card) => [normalizeName(card.name), card]))
+      : new Map();
 
   // Create a map for PokeAPI data if available
-  const pokeApiDataMap = pokeApiData
-    ? new Map(
-        pokeApiData.map((pokemon) => [normalizeName(pokemon.name), pokemon])
-      )
-    : new Map();
+  const pokeApiDataMap =
+    pokeApiData.status === "fulfilled"
+      ? new Map(
+          pokeApiData.value?.map((pokemon) => [
+            normalizeName(pokemon.name),
+            pokemon,
+          ])
+        )
+      : new Map();
 
-  // Use image data as the base source of truth
-  return imageData.map((imagePokemon) => {
+  // Since imageData is reading local files, it will always be fulfilled
+  const images = imageData.status === "fulfilled" ? imageData.value : [];
+
+  // Create aggregated Pokemon data
+  const aggregatedPokemon = images.map((imagePokemon: FallbackPokemon) => {
     const normalizedName = normalizeName(imagePokemon.name);
     const pokeApiPokemon = pokeApiDataMap.get(normalizedName);
     const tcgCard = tcgDataMap.get(normalizedName);
@@ -209,6 +174,11 @@ export async function fetchAggregatedPokemon(): Promise<AggregatedPokemon[]> {
       }),
     };
   });
+
+  // Sort the Pokemon by their effective IDs
+  return aggregatedPokemon.sort(
+    (a, b) => getEffectiveId(a) - getEffectiveId(b)
+  );
 }
 
 // Helper function to normalize Pokemon names for comparison

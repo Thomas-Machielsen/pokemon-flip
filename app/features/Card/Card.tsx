@@ -1,17 +1,17 @@
 "use client";
 
+import { AggregatedPokemon } from "@/app/services/pokemonAggregator";
 import Image from "next/image";
 import { useState } from "react";
 import "./Card.css";
 
-interface CardProps {
-  id: number;
-  name: string;
-  type?: string;
-  artwork?: string;
-}
-
-export default function Card({ id, name, type, artwork }: CardProps) {
+export default function Card({
+  id,
+  name,
+  type,
+  artwork,
+  tcgHp,
+}: AggregatedPokemon) {
   const [flipped, setFlipped] = useState(false);
 
   const handleFlip = () => {
@@ -27,7 +27,7 @@ export default function Card({ id, name, type, artwork }: CardProps) {
           <>
             <div className="card__header">
               <h2 className="card__title">{name}</h2>
-              <span className="card__hp">40 HP</span>
+              <span className="card__hp">{tcgHp} HP</span>
             </div>
             <div className="card__image-container">
               {artwork ? (

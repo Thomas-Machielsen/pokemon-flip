@@ -1,13 +1,9 @@
+import { AggregatedPokemon } from "@/app/services/pokemonAggregator";
 import { Card } from "../Card";
 import "./CardGrid.css";
 
 interface CardGridProps {
-  cards: Array<{
-    id: number;
-    name: string;
-    type?: string;
-    artwork?: string;
-  }>;
+  cards: AggregatedPokemon[];
 }
 
 export default function CardGrid({ cards }: CardGridProps) {
@@ -20,6 +16,7 @@ export default function CardGrid({ cards }: CardGridProps) {
           name={card.name}
           type={card.type}
           artwork={card.artwork}
+          tcgHp={card.tcgHp}
         />
       ))}
     </div>
