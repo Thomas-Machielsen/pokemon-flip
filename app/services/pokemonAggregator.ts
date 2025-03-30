@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { fetchGen1Pokemon } from "./(pokeapi)/pokemon";
 import { fetchBaseSetPokemon } from "./(pokemontcg)/pokemontcg";
 
@@ -106,56 +108,107 @@ interface AggregatedPokemon {
   };
 }
 
-export async function fetchAggregatedPokemon(): Promise<AggregatedPokemon[]> {
+interface FallbackPokemon {
+  id: number;
+  name: string;
+  artwork: string;
+}
+
+async function getImageBasedPokemon(): Promise<FallbackPokemon[]> {
+  const imageDir = path.join(process.cwd(), "public/images");
   try {
-    // Fetch data from both APIs in parallel
-    const [pokeApiData, tcgData] = await Promise.all([
-      fetchGen1Pokemon(),
-      fetchBaseSetPokemon(),
-    ]);
-
-    // Create a map of TCG cards by normalized name for easier lookup
-    const tcgDataMap = new Map(
-      tcgData.map((card) => [normalizeName(card.name), card])
-    );
-
-    // Combine the data, using PokeAPI as the base
-    return pokeApiData.map((pokemon) => {
-      const tcgCard = tcgDataMap.get(normalizeName(pokemon.name));
-
-      return {
-        id: pokemon.id,
-        name: pokemon.name,
-        // PokeAPI data
-        type: pokemon.type,
-        artwork: pokemon.artwork,
-        // TCG data (if available)
-        ...(tcgCard && {
-          tcgId: tcgCard.id,
-          tcgHp: tcgCard.hp,
-          tcgTypes: tcgCard.types,
-          tcgImages: tcgCard.images,
-          tcgSet: tcgCard.set,
-          tcgAbilities: tcgCard.abilities,
-          tcgAttacks: tcgCard.attacks,
-          tcgWeaknesses: tcgCard.weaknesses,
-          tcgResistances: tcgCard.resistances,
-          tcgRetreatCost: tcgCard.retreatCost,
-          tcgRarity: tcgCard.rarity,
-          tcgFlavorText: tcgCard.flavorText,
-          tcgArtist: tcgCard.artist,
-          tcgNumber: tcgCard.number,
-          tcgPrices: {
-            tcgplayer: tcgCard.tcgplayer,
-            cardmarket: tcgCard.cardmarket,
-          },
-        }),
-      };
-    });
+    const files = fs.readdirSync(imageDir);
+    return files
+      .filter((file) => file.endsWith(".png"))
+      .map((file, index) => ({
+        id: index + 1,
+        name: path
+          .basename(file, ".png")
+          .replace("♀", "-f")
+          .replace("♂", "-m")
+          .replace(". ", "")
+          .toLowerCase(),
+        artwork: `/images/${file}`,
+      }));
   } catch (error) {
-    console.error("Error aggregating Pokemon data:", error);
-    throw error;
+    console.error("Error reading Pokemon images:", error);
+    return [];
   }
+}
+
+async function safelyFetchPokeApi() {
+  try {
+    return await fetchGen1Pokemon();
+  } catch (error) {
+    console.error("PokeAPI fetch failed:", error);
+    return null;
+  }
+}
+
+async function safelyFetchTcgApi() {
+  try {
+    return await fetchBaseSetPokemon();
+  } catch (error) {
+    console.error("Pokemon TCG API fetch failed:", error);
+    return null;
+  }
+}
+
+export async function fetchAggregatedPokemon(): Promise<AggregatedPokemon[]> {
+  // Fetch data from all sources in parallel
+  const [pokeApiData, tcgData, imageData] = await Promise.all([
+    safelyFetchPokeApi(),
+    safelyFetchTcgApi(),
+    getImageBasedPokemon(),
+  ]);
+
+  // Create a map for TCG data if available
+  const tcgDataMap = tcgData
+    ? new Map(tcgData.map((card) => [normalizeName(card.name), card]))
+    : new Map();
+
+  // Create a map for PokeAPI data if available
+  const pokeApiDataMap = pokeApiData
+    ? new Map(
+        pokeApiData.map((pokemon) => [normalizeName(pokemon.name), pokemon])
+      )
+    : new Map();
+
+  // Use image data as the base source of truth
+  return imageData.map((imagePokemon) => {
+    const normalizedName = normalizeName(imagePokemon.name);
+    const pokeApiPokemon = pokeApiDataMap.get(normalizedName);
+    const tcgCard = tcgDataMap.get(normalizedName);
+
+    return {
+      id: pokeApiPokemon?.id || imagePokemon.id,
+      name: pokeApiPokemon?.name || imagePokemon.name,
+      // PokeAPI data (if available)
+      type: pokeApiPokemon?.type,
+      artwork: pokeApiPokemon?.artwork || imagePokemon.artwork,
+      // TCG data (if available)
+      ...(tcgCard && {
+        tcgId: tcgCard.id,
+        tcgHp: tcgCard.hp,
+        tcgTypes: tcgCard.types,
+        tcgImages: tcgCard.images,
+        tcgSet: tcgCard.set,
+        tcgAbilities: tcgCard.abilities,
+        tcgAttacks: tcgCard.attacks,
+        tcgWeaknesses: tcgCard.weaknesses,
+        tcgResistances: tcgCard.resistances,
+        tcgRetreatCost: tcgCard.retreatCost,
+        tcgRarity: tcgCard.rarity,
+        tcgFlavorText: tcgCard.flavorText,
+        tcgArtist: tcgCard.artist,
+        tcgNumber: tcgCard.number,
+        tcgPrices: {
+          tcgplayer: tcgCard.tcgplayer,
+          cardmarket: tcgCard.cardmarket,
+        },
+      }),
+    };
+  });
 }
 
 // Helper function to normalize Pokemon names for comparison
@@ -164,5 +217,6 @@ function normalizeName(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "") // Remove special characters
     .replace(/^mr/, "mr.") // Handle Mr. Mime
-    .replace(/^nidoran[mf]$/, "nidoran"); // Handle Nidoran♂/♀
+    .replace(/^nidoran[mf]$/, "nidoran") // Handle Nidoran♂/♀
+    .replace(/\s+/g, ""); // Remove any remaining whitespace
 }
