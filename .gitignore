@@ -42,3 +42,4 @@ next-env.d.ts
 
 *storybook.log
 /app/features/Shuffles/
+/app/tcg/
